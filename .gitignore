@@ -9,9 +9,6 @@
 /coverage
 
 
-/src
-.babelrc
-
 # misc
 .DS_Store
 .env.local
