@@ -1,11 +1,14 @@
 const express  = require("express")
 const app = express()
+const path = require("path")
 const PORT = process.env.PORT || 5000
-const UserDB = require('./Model/modelUser')
+const connection = require("./Config/configDB")
+const routerApi = require("./Router/routeApi")
+const routerWeb = require("./Router/routeWeb")
 app.use(express.urlencoded({extended: true}))
 app.use(express.json())
-const mongoose = require('mongoose')
-require('dotenv').config()
+app.set('view engine', 'ejs')
+app.set('views', path.join(__dirname, 'views'))
 
 app.use(function (req, res, next) { 
     res.setHeader('Access-Control-Allow-Origin', "*")
@@ -14,64 +17,17 @@ app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Credentials', true)
     next()
 })
-mongoose.set("strictQuery", true)
-const connectMongoDB = async () => {
-	try {
-        const uri = `mongodb+srv://luyen123:luyen123@cluster0.34dqtod.mongodb.net/?retryWrites=true&w=majority`
-		await mongoose.connect(
-			uri,
-		)
-		console.log("[LOG]",'MongoDB kết nối thành công')
-	} catch (error) {
-		console.log("[ERROR]",error.message)
-		process.exit(1)
-	}
-}
-connectMongoDB()
+connection.connectMongoDB()
 
-app.post('/user', (req,res)=>{
-    try {
-        const { name, userName, password,email,role} = req.body
-        const data = new UserDB({ name, userName, password,email, role})
-        data.save(data)
-        res.json(data)
-    } catch (error) {
-        res.json(error)
-    }
-})
-
-app.get('/user', async (req,res)=>{
-    try {
-        const data= await UserDB.find()
-        res.json(data)
-    } catch (error) {
-        res.json(error)
-    }
-})
-
-app.put('/user/:id', async (req,res)=>{
-
-    try {
-        await UserDB.updateOne({_id:req.params.id}, req.body)
-        res.json(req.body)
-    } catch (error) {
-        res.json(error)
-    }
-})
-app.delete('/user/:id', async (req,res)=>{
-
-    try {
-        const id = req.params.id
-        await UserDB.deleteOne({ _id:id })
-        const data= await UserDB.find()
-        res.json(data)
-    } catch (error) {
-        res.json(error)
-    }
-})
-
+app.use('/public', express.static(path.join(__dirname, '/public')))
+app.use('/api', routerApi)
+app.use('/web', routerWeb)
 app.get('/',(req,res)=>{
-    res.send("<h1> Deploy nodejs EC2 </h1>")
+    res.send(
+        "<h1> Deploy nodejs EC2 </h1>" +
+        "<h2><a href='/web'>Web</a></h2>" +
+        "<h2><a href='/api/user'>Api user</a></h2>" 
+    )
 })
  
 app.listen(PORT, ()=>{
