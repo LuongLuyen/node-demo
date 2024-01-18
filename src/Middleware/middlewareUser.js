@@ -1,3 +1,4 @@
+const UserModel = require('../Model/modelUser')
 const checkLogin = (req, res, next) => {
     const role = req.body.role
     if(role === 'USER' || role === 'ADMIN'){
@@ -6,8 +7,9 @@ const checkLogin = (req, res, next) => {
         res.json({"payload":"Bạn chưa đăng nhập"})
     }
 }
-const checkAdmin = (req,res,next) => {
-    const role = req.body.role
+const checkAdmin = async(req,res,next) => {
+    user = await UserModel.findById({ _id:req.params.id })
+    const role = user.role
     if(role === 'ADMIN'){
         next()
     }else{
